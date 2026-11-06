@@ -1,6 +1,6 @@
 ---
 name: backlog-worklog
-description: Liệt kê các issue Backlog mà người dùng đã log Actual Hours trong một ngày, kèm số giờ log trong ngày và trạng thái hiện tại, sẵn sàng copy dán vào sheet báo cáo hằng ngày. Dùng khi người dùng hỏi hôm nay/ngày X đã làm gì, đã log giờ vào ticket nào.
+description: Liệt kê các issue Backlog mà người dùng đã log Actual Hours trong một ngày, kèm số giờ log trong ngày và trạng thái hiện tại; cộng lịch họp cố định và tự gợi ý việc bù cho đủ giờ làm; sẵn sàng copy dán vào sheet báo cáo hằng ngày. Dùng khi người dùng hỏi hôm nay/ngày X đã làm gì, đã log giờ vào ticket nào, hoặc muốn xem/sửa lịch họp cố định hay danh sách việc gợi ý.
 argument-hint: "[ngày: YYYY-MM-DD | DD/MM] (mặc định: hôm nay)"
 ---
 
@@ -13,6 +13,28 @@ Người dùng có thể không rành kỹ thuật. Luôn trả lời bằng ti�
 ## Config
 
 Đọc `config.default.json` cạnh file này (giá trị chung của team), sau đó đọc `~/.claude/sd-daily-tools/backlog-worklog.json` nếu có (giá trị cá nhân, không bắt buộc); gộp nông, key cá nhân được ưu tiên. Mọi key đều có giá trị mặc định dùng được; `backlog_user_id` là null nghĩa là "lấy qua `get_myself`".
+
+Các key cho phần bù giờ (đặt trong file cá nhân, vì mỗi người một lịch):
+
+```json
+{
+  "working_hours": 8,
+  "recurring_meetings": [
+    { "task": "【MTG Daily】Project", "project": "Project", "hours": 0.5, "weekdays": ["mon", "tue", "wed", "thu", "fri"] }
+  ],
+  "filler_tasks": [
+    { "task": "Support team", "project": "Others", "max_hours": 4 }
+  ]
+}
+```
+
+- `recurring_meetings`: họp cố định. `weekdays` dùng `mon`..`sun`. `task`/`project` ghi đúng như sẽ nhập vào sheet.
+- `filler_tasks`: việc dùng để gợi ý bù giờ, **thứ tự trong danh sách = thứ tự ưu tiên**. `max_hours` không có → không giới hạn. `weekdays` không bắt buộc; có thì chỉ gợi ý vào các thứ đó.
+- Danh sách trống hoặc không có → bỏ qua phần tương ứng.
+
+## Xem / sửa lịch họp và việc gợi ý
+
+Người dùng nói bằng lời (ví dụ "thêm họp X thứ 5 30 phút", "bỏ việc Y", "xem lịch họp của tôi") → đọc file cá nhân, sửa đúng key liên quan, giữ nguyên các key khác, ghi lại file. Đổi phút sang giờ (30 phút = 0.5). Thiếu thông tin (thứ mấy, bao lâu, project) → hỏi bằng `AskUserQuestion`. Sau khi ghi, in lại danh sách hiện tại dạng bảng để người dùng kiểm tra. Không bắt người dùng tự sửa file.
 
 ## Chưa có MCP Backlog
 
@@ -51,15 +73,41 @@ Tổng: <tổng Giờ (trong ngày)>h
 ```
 
    - Ô mã: có `ticket_url_template` → `[MÃ](url)`.
-   - Không có issue nào → báo "Không có Actual Hours nào được log ngày <ngày>" và dừng.
+   - Không có issue nào → ghi "Không có Actual Hours nào được log ngày <ngày>" và **vẫn làm tiếp** bước 7b (họp cố định và gợi ý vẫn có ích).
 
-8. **Khối để copy.** Sau bảng, một khối code duy nhất, phân cách bằng tab, không có tiêu đề, cùng thứ tự dòng, khớp với các cột sheet `TASK | PROJECT | HOURS` để dán một lần điền được 3 ô liền nhau mỗi dòng:
+7b. **Họp cố định và gợi ý bù giờ.** Bỏ qua bước này nếu không có cả `recurring_meetings` lẫn `filler_tasks`.
+   - Thứ của ngày cần xem tính theo giờ địa phương (`utc_offset`).
+   - **Họp trong ngày** = các mục `recurring_meetings` có thứ đó trong `weekdays`.
+   - `thiếu = working_hours − tổng giờ Backlog trong ngày − tổng giờ họp`.
+   - `thiếu > 0` → duyệt `filler_tasks` theo thứ tự (bỏ mục có `weekdays` không chứa thứ đó). Mỗi mục nhận `min(phần còn thiếu, max_hours)`; hết thiếu thì dừng. Duyệt hết danh sách mà vẫn thiếu → cảnh báo "còn thiếu Xh, danh sách việc gợi ý không đủ".
+   - `thiếu < 0` → cảnh báo "tổng giờ vượt `working_hours` Xh", không gợi ý gì.
+   - In thêm sau phần tổng của bảng Backlog:
+
+```
+### Họp cố định (<thứ>)
+| Việc | Project | Giờ |
+|------|---------|-----|
+| 【MTG Daily】Project | Project | 0.5 |
+
+### Gợi ý bù giờ (còn thiếu <thiếu>h)
+| Việc | Project | Giờ |
+|------|---------|-----|
+| Support team | Others | 2 |
+
+Tổng cả ngày: <Backlog + họp + gợi ý>h / <working_hours>h
+```
+
+   - Ghi rõ dưới bảng: phần "Gợi ý" chỉ là đề xuất, người dùng tự kiểm tra lại trước khi nhập sheet. Ngày nghỉ lễ / nghỉ phép / họp bị huỷ thì skill không biết.
+
+8. **Khối để copy.** Sau các bảng, một khối code duy nhất, phân cách bằng tab, không có tiêu đề, khớp với các cột sheet `TASK | PROJECT | HOURS` để dán một lần điền được 3 ô liền nhau mỗi dòng. Thứ tự dòng: họp cố định → issue Backlog (theo thứ tự bảng) → gợi ý bù giờ:
 
 ```
 PROJ-101 【PROJ-100】...<tiêu đề> (DevelopDeployed)	PROJ	1
 ```
 
-   - TASK = `<MÃ> <tiêu đề> (<trạng thái>)`, giữ nguyên văn tiêu đề. PROJECT = `projectKey`. HOURS = số giờ log trong ngày.
+   - Dòng Backlog: TASK = `<MÃ> <tiêu đề> (<trạng thái>)`, giữ nguyên văn tiêu đề. PROJECT = `projectKey`. HOURS = số giờ log trong ngày.
+   - Dòng họp / gợi ý: TASK = `task`, PROJECT = `project`, HOURS = số giờ đã tính, đúng như config.
+   - Ngay dưới khối code, nói rõ những dòng nào là gợi ý để người dùng xoá nếu không đúng.
    - Dùng ký tự tab thật, không dùng dấu cách.
 
 ## Giới hạn đã biết (chỉ nêu khi liên quan)

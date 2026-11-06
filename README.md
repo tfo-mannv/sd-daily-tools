@@ -57,6 +57,18 @@ claude mcp add backlog -s user -e BACKLOG_DOMAIN=DOMAIN_BACKLOG -e BACKLOG_API_K
 
 > ⚠️ API key giống như mật khẩu: **không** dán vào chat với Claude, **không** gửi cho ai. Lỡ để lộ thì vào Backlog xoá key đó và tạo key mới.
 
+## Bước 4 (tuỳ chọn): Lịch họp cố định và việc gợi ý bù giờ
+
+`backlog-worklog` có thể tự cộng các buổi họp cố định, và nếu tổng giờ (Backlog + họp) chưa đủ 8 tiếng thì gợi ý thêm việc để báo cáo cho đủ.
+
+Không cần sửa file, chỉ cần **nói với Claude** sau khi chạy `/sd-daily-tools:backlog-worklog`, ví dụ:
+
+- "Thêm họp cố định: Daily MTG dự án ABC, thứ 2 đến thứ 6, 30 phút, project ABC"
+- "Thêm việc gợi ý: Support team, project Others, tối đa 4 tiếng"
+- "Xem lịch họp và việc gợi ý của tôi"
+
+Claude sẽ lưu vào file cá nhân và in lại danh sách để bạn kiểm tra. Các dòng gợi ý chỉ là đề xuất, hãy xem lại trước khi dán vào sheet.
+
 ---
 
 ## Gặp lỗi?

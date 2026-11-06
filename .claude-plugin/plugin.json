@@ -1,5 +1,5 @@
 {
   "name": "sd-daily-tools",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Daily routine helpers: /daily-report builds the end-of-day Slack report from the monthly daily-report Google Sheet; /backlog-worklog lists Backlog issues you logged Actual Hours on."
 }
