@@ -83,6 +83,10 @@ Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file.
 • N/A
 ```
 
-`slack_header` là chuỗi rỗng → bỏ dòng header, khối code bắt đầu từ `1. Công việc hôm nay`.
+**Header Slack (bắt buộc, mọi lần chạy, không chỉ lần đầu):**
+- Dòng đầu của khối code luôn là **toàn bộ** `slack_header` đã lưu, nguyên văn từng ký tự: giữ mọi mention (`@...`), dấu câu, khoảng trắng và đủ số dòng. Không rút gọn, không dịch, không thay bằng placeholder, không bỏ dòng nào, không đưa header ra ngoài khối code.
+- Ký tự xuống dòng trong header in thành xuống dòng thật. Nếu giá trị lưu đang chứa chuỗi hai ký tự `\n` (gạch chéo + n) thay vì xuống dòng thật → vẫn in thành xuống dòng, đồng thời sửa lại file cá nhân để lưu đúng.
+- Trước khi trả kết quả, tự kiểm tra: phần đầu khối code phải trùng khớp hoàn toàn với `slack_header` (sau khi đổi `\n` thành xuống dòng). Không khớp → sửa rồi mới trả.
+- `slack_header` là chuỗi rỗng (người dùng chọn "Không dùng header") → bỏ header, khối code bắt đầu từ `1. Công việc hôm nay`.
 
 Chỉ hiển thị khối code và các ghi chú ngắn; người dùng copy dán trực tiếp.
