@@ -5,5 +5,7 @@
   "max_pages": 5,
   "working_hours": 8,
   "recurring_meetings": [],
-  "filler_tasks": []
+  "filler_tasks": [],
+  "sheet_project_list_range": "Category!B3:B100",
+  "project_map": {}
 }

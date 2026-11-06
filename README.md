@@ -1,11 +1,11 @@
 # sd-daily-tools
 
-Hai lệnh Claude Code hỗ trợ báo cáo hằng ngày. Chỉ **đọc** dữ liệu, không sửa sheet hay Backlog.
+Hai lệnh Claude Code hỗ trợ báo cáo hằng ngày. Không bao giờ sửa Backlog. Chỉ ghi vào sheet khi bạn đồng ý (lệnh `backlog-worklog`).
 
 | Lệnh | Dùng để |
 |---|---|
 | `/sd-daily-tools:daily-report` | Tạo báo cáo cuối ngày, copy dán vào Slack |
-| `/sd-daily-tools:backlog-worklog` | Xem hôm nay bạn đã log giờ vào ticket Backlog nào, copy dán vào sheet |
+| `/sd-daily-tools:backlog-worklog` | Xem hôm nay bạn đã log giờ vào ticket Backlog nào, rồi bấm **Ghi vào sheet** để Claude điền thẳng vào sheet (không cần copy) |
 
 Muốn xem ngày khác thì thêm ngày vào sau lệnh, ví dụ `/sd-daily-tools:daily-report 05/11`.
 
