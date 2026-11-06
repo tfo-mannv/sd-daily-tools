@@ -7,7 +7,7 @@ argument-hint: "[ngày: YYYY-MM-DD | DD/MM] (mặc định: hôm nay)"
 
 # /daily-report
 
-Sheet là nguồn dữ liệu duy nhất; skill này chỉ **đọc**, không bao giờ ghi vào sheet. Kết quả là đoạn text người dùng copy dán vào Slack.
+Sheet là nguồn dữ liệu duy nhất; skill này chỉ **đọc**, không bao giờ ghi vào sheet. Kết quả là đoạn text người dùng copy dán vào Slack; nếu `slack_dm` bật thì gửi thêm bản đó vào tin nhắn Slack cá nhân (DM cho chính mình) để người dùng tự kiểm tra rồi chuyển tiếp.
 
 Người dùng có thể không rành kỹ thuật: không bao giờ bắt họ sửa file hay chạy lệnh. Luôn trả lời bằng tiếng Việt.
 
@@ -90,3 +90,10 @@ Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file.
 - `slack_header` là chuỗi rỗng (người dùng chọn "Không dùng header") → bỏ header, khối code bắt đầu từ `1. Công việc hôm nay`.
 
 Chỉ hiển thị khối code và các ghi chú ngắn; người dùng copy dán trực tiếp.
+
+8. **Gửi vào Slack cá nhân.** Chỉ khi `slack_dm` là `true` (mặc định) và có connector `claude.ai Slack` (`slack_send_message`). Chỉ gửi vào **DM của chính người dùng**, không bao giờ gửi vào channel hay cho người khác, kể cả khi header có mention.
+   - `channel_id` = Slack user ID của người dùng hiện tại: lấy từ mô tả tool Slack ("current logged in user's user_id is ...") hoặc gọi `slack_read_user_profile` không truyền `user_id`. Không hard-code, không lưu vào config.
+   - `message` = đúng nội dung khối code ở bước 7 (đã qua bước tự kiểm tra header), bọc trong một khối code ``` để Slack không tự đổi định dạng danh sách và để copy nguyên văn. Không thêm lời dẫn bên trong khối code; nếu cần thì thêm một dòng phía trên, ví dụ `Báo cáo ngày <DD/MM>:`.
+   - Gửi thành công → báo một dòng kèm link tin nhắn. Vẫn in khối code trong chat như bước 7.
+   - Chưa kết nối Slack → không dừng; in kết quả như bước 7 và nhắc một dòng: gõ `/mcp`, chọn `claude.ai Slack`, đăng nhập; muốn tắt việc gửi thì nói "tắt gửi Slack" (lưu `slack_dm: false` vào file cá nhân).
+   - Lỗi API → báo nguyên văn lỗi, không thử lại quá 1 lần. Chạy lại skill sẽ gửi thêm một tin mới (không sửa tin cũ); đây là DM cho chính mình nên chấp nhận được.

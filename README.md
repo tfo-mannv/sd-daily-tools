@@ -4,8 +4,8 @@ Hai lệnh Claude Code hỗ trợ báo cáo hằng ngày. Không bao giờ sửa
 
 | Lệnh | Dùng để |
 |---|---|
-| `/sd-daily-tools:daily-report` | Tạo báo cáo cuối ngày, copy dán vào Slack |
-| `/sd-daily-tools:backlog-worklog` | Xem hôm nay bạn đã log giờ vào ticket Backlog nào, rồi bấm **Ghi vào sheet** để Claude điền thẳng vào sheet (không cần copy) |
+| `/sd-daily-tools:daily-report` | Tạo báo cáo cuối ngày, gửi vào Slack cá nhân của bạn (DM cho chính mình) để bạn xem lại rồi chuyển tiếp |
+| `/sd-daily-tools:backlog-worklog` | Xem hôm nay bạn đã log giờ vào ticket Backlog nào, rồi bấm **Ghi vào sheet** để Claude điền thẳng vào sheet (không cần copy). Ghi xong, Claude tự tạo báo cáo cuối ngày và gửi vào Slack cá nhân của bạn |
 
 Muốn xem ngày khác thì thêm ngày vào sau lệnh, ví dụ `/sd-daily-tools:daily-report 05/11`.
 
@@ -34,6 +34,7 @@ Cập nhật bản mới: `claude plugin update sd-daily-tools`.
 1. Trong Claude Code, gõ `/mcp` rồi Enter.
 2. Chọn **claude.ai Google Drive**, bấm kết nối, đăng nhập bằng tài khoản Google công ty.
 3. Làm tương tự với **claude.ai Google Sheets**.
+4. (Khuyên dùng) Làm tương tự với **claude.ai Slack** để báo cáo được gửi vào tin nhắn Slack cá nhân. Claude chỉ gửi cho chính bạn, không gửi vào channel. Không muốn thì nói "tắt gửi Slack".
 
 Lần đầu chạy `daily-report`, Claude sẽ hỏi 3 điều (team lead sẽ gửi sẵn 2 điều đầu qua Slack):
 

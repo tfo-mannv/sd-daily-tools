@@ -1,6 +1,6 @@
 ---
 name: backlog-worklog
-description: Liệt kê các issue Backlog mà người dùng đã log Actual Hours trong một ngày, kèm số giờ log trong ngày và trạng thái hiện tại; cộng lịch họp cố định và tự gợi ý việc bù cho đủ giờ làm; sẵn sàng copy dán vào sheet báo cáo hằng ngày. Dùng khi người dùng hỏi hôm nay/ngày X đã làm gì, đã log giờ vào ticket nào, hoặc muốn xem/sửa lịch họp cố định hay danh sách việc gợi ý.
+description: Liệt kê các issue Backlog mà người dùng đã log Actual Hours trong một ngày, kèm số giờ log trong ngày và trạng thái hiện tại; cộng lịch họp cố định và tự gợi ý việc bù cho đủ giờ làm; ghi thẳng vào sheet báo cáo hằng ngày khi người dùng đồng ý, rồi tự tạo báo cáo cuối ngày và gửi vào Slack cá nhân. Dùng khi người dùng hỏi hôm nay/ngày X đã làm gì, đã log giờ vào ticket nào, hoặc muốn xem/sửa lịch họp cố định hay danh sách việc gợi ý.
 argument-hint: "[ngày: YYYY-MM-DD | DD/MM] (mặc định: hôm nay)"
 ---
 
@@ -136,6 +136,12 @@ PROJ-101 【PROJ-100】...<tiêu đề> (DevelopDeployed)	PROJ	1
 
    f. **Xác nhận.** Đọc lại vùng vừa ghi và ô `WORKING HOURS`; so với giá trị dự kiến. Khớp → báo "Đã ghi N dòng vào sheet, WORKING HOURS = Xh" kèm link sheet. Không khớp hoặc lỗi API → báo nguyên văn lỗi, nói rõ đã ghi được gì, không tự thử lại quá 1 lần.
    - Dùng ký tự tab thật, không dùng dấu cách.
+
+10. **Tự chạy báo cáo cuối ngày và gửi Slack cá nhân.** Chỉ chạy khi bước 9f xác nhận đã ghi **khớp** (ghi lỗi, ghi lệch, người dùng chọn "Không ghi"/"Huỷ" → bỏ qua bước này, không hỏi thêm).
+   - `daily-report` có `disable-model-invocation`, nên không gọi qua tool Skill: đọc `../daily-report/SKILL.md` và tự làm theo bước 3–8 của skill đó, với **cùng ngày** và **cùng spreadsheet** vừa ghi (dùng lại kết quả bước 2, không tìm lại trên Drive), config gộp như mục Config của `daily-report`.
+   - Đọc lại sheet sau khi ghi (không dựng báo cáo từ danh sách trong bộ nhớ), để báo cáo phản ánh đúng sheet, gồm cả dòng có sẵn khi chọn "Chỉ thêm vào dòng trống".
+   - Bước 8 của `daily-report` gửi báo cáo vào DM Slack của chính người dùng (khi `slack_dm` bật). Không bao giờ gửi vào channel của team; người dùng tự xem lại rồi chuyển tiếp.
+   - Kết thúc bằng tóm tắt 2 dòng: đã ghi sheet (N dòng, WORKING HOURS = Xh) + đã gửi Slack (link) hoặc lý do chưa gửi.
 
 ## Giới hạn đã biết (chỉ nêu khi liên quan)
 
