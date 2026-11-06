@@ -29,12 +29,21 @@ Không có loại nào → dừng lại, hướng dẫn người dùng: gõ `/mc
 
 ## Lần chạy đầu (thiếu giá trị cá nhân)
 
-Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file. Hỏi gộp các câu hỏi trong một lần nếu được:
-- `sheet_name_pattern` là null → trước bước 2, hỏi tên file Google Sheet báo cáo của tháng này (người dùng copy từ tiêu đề file). Thay phần `YYYYMM` của tháng hiện tại trong tên bằng `{YYYYMM}`, ví dụ `Daily Report (202611)` → `Daily Report ({YYYYMM})`. Tên không chứa `YYYYMM` của tháng hiện tại → hỏi lại.
-- `slack_header` là null → hỏi phần mở đầu báo cáo Slack mà team dùng chung (người nhắc tên, câu chào; có thể nhiều dòng). Giữ nguyên văn, kể cả xuống dòng.
-- `member_name` là null → sau bước 2, đọc cột `A` của tab, liệt kê các tên khác nhau, hỏi người dùng tên nào là của họ (dùng AskUserQuestion nếu có). Giữ nguyên tên đúng như trong sheet.
-- `google_email` là null và chỉ có MCP local → hỏi email Google công ty của người dùng.
-- Ghi các giá trị vừa lấy vào `~/.claude/sd-daily-tools/daily-report.json` (tạo thư mục nếu chưa có; giữ nguyên các key đã có trong file). Báo người dùng một dòng rằng đã lưu và lần sau sẽ không hỏi lại.
+Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file.
+
+**Bắt buộc hỏi bằng tool `AskUserQuestion`** (form có lựa chọn và ô "Other" để gõ). Không hỏi bằng bảng hay danh sách trong tin nhắn: người dùng không nhận ra đó là câu hỏi cần trả lời. Mỗi câu hỏi có 2–4 lựa chọn; giá trị tự do thì hướng dẫn gõ vào ô "Other" ngay trong nội dung câu hỏi. Chỉ khi tool này không có mới hỏi bằng tin nhắn, và khi đó đánh số từng câu, ghi rõ "Hãy trả lời theo số thứ tự".
+
+**Đợt 1: trước bước 2**, gộp các câu còn thiếu vào **một** lần gọi `AskUserQuestion`:
+- `google_email` (chỉ khi phải dùng MCP local): lựa chọn đầu là email của người dùng nếu context phiên có sẵn; lựa chọn còn lại "Email khác (gõ vào ô Other)".
+- `sheet_name_pattern`: nếu có công cụ tìm file Drive, tìm trước các spreadsheet có tên chứa `YYYYMM` của tháng này và đưa tối đa 4 tên tìm được làm lựa chọn. Không tìm được thì hỏi người dùng gõ tên file vào ô "Other" (ví dụ `Daily Report (202611)`). Sau khi có tên: thay phần `YYYYMM` trong tên bằng `{YYYYMM}`. Tên không chứa `YYYYMM` của tháng này → hỏi lại.
+- `slack_header`: lựa chọn "Không dùng header" và "Nhập header (gõ vào ô Other)". Ghi rõ trong câu hỏi: header là phần mở đầu team dùng chung, chỗ cần xuống dòng thì gõ `\n`. Lưu `\n` thành ký tự xuống dòng thật. Chọn "Không dùng header" → lưu chuỗi rỗng `""`.
+
+**Đợt 2: sau bước 2** (đã có spreadsheet), nếu `member_name` là null: đọc cột `A` của tab, lấy danh sách tên khác nhau (bỏ các dòng tiêu đề như `NAME`, `DEV`, `END`, `PROJECT`...).
+- Chọn tối đa 4 tên có khả năng nhất làm lựa chọn: ưu tiên tên khớp với tên hiển thị của tài khoản Google, hoặc khớp với phần trước `@` của email (ví dụ `mannv` ≈ "Mận" + chữ cái đầu họ/tên đệm "N", "V"), bỏ dấu khi so sánh.
+- Ghi trong câu hỏi: không thấy tên mình thì gõ tên vào ô "Other". Tên gõ vào → so khớp với danh sách (bỏ dấu, không phân biệt hoa thường); khớp đúng một tên thì dùng tên đó, còn lại thì hỏi lại.
+- Luôn lưu tên đúng như trong sheet.
+
+**Lưu:** ghi các giá trị vừa lấy vào `~/.claude/sd-daily-tools/daily-report.json` (tạo thư mục nếu chưa có; giữ nguyên các key đã có). Báo người dùng một dòng rằng đã lưu và lần sau không hỏi lại.
 
 ## Các bước
 
@@ -73,5 +82,7 @@ Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file. 
 3. Vấn đề gặp phải
 • N/A
 ```
+
+`slack_header` là chuỗi rỗng → bỏ dòng header, khối code bắt đầu từ `1. Công việc hôm nay`.
 
 Chỉ hiển thị khối code và các ghi chú ngắn; người dùng copy dán trực tiếp.
