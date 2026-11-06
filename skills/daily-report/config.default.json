@@ -1,0 +1,25 @@
+{
+  "google_email": null,
+  "member_name": null,
+  "sheet_name_pattern": null,
+  "sheet_id_overrides": {},
+  "tab_name_pattern": "{YYYYMM}",
+  "slack_header": null,
+  "exclude_rules": {
+    "projects": [
+      "Meeting"
+    ],
+    "task_contains": [
+      "MTG",
+      "Dev Team Meeting"
+    ]
+  },
+  "done_statuses": [
+    "Closed",
+    "DevelopDeployed",
+    "Done",
+    "Resolved",
+    "100%"
+  ],
+  "ticket_url_template": null
+}

@@ -1,0 +1,5 @@
+{
+  "name": "sd-daily-tools",
+  "owner": { "name": "tfo-mannv" },
+  "plugins": [{ "name": "sd-daily-tools", "source": "./" }]
+}
