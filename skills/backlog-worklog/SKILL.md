@@ -117,7 +117,7 @@ Tổng cả ngày: <Backlog + họp + gợi ý>h / <working_hours>h
 Tổng: <tổng>h / <working_hours>h · Số dòng: <n> / <số dòng task của sheet, nếu đã biết>
 ```
 
-   - Dòng Backlog: TASK = `<MÃ> <tiêu đề> (<trạng thái>)`, giữ nguyên văn tiêu đề. Dòng họp / gợi ý: TASK = `task` trong config.
+   - Dòng Backlog: TASK = `<MÃ> <tiêu đề> (<trạng thái>)`, tiêu đề lấy nguyên văn từ Backlog rồi rút gọn theo mục "Rút gọn tiêu đề song ngữ" trong `../daily-report/SKILL.md` (đọc `strip_japanese_title` từ config gộp của `daily-report`). Bảng worklog ở bước 7 vẫn hiện tiêu đề đầy đủ. Dòng họp / gợi ý: TASK = `task` trong config.
    - PROJECT / HOURS: nếu đã có config sheet (mục Config của `daily-report`) và công cụ Google, chuẩn hoá ngay theo bước 9c (chỉ **đọc** sheet: danh sách project, số dòng task) để bảng xem trước là giá trị cuối cùng. Project chưa khớp danh sách → hiện `⚠ <giá trị gốc>`, sẽ hỏi ở bước 9. Chưa có config/công cụ Google → hiện `projectKey` / `project` gốc và ghi chú "PROJECT sẽ được chuẩn hoá khi ghi".
    - Số dòng vượt số dòng task của sheet → cảnh báo ngay dưới bảng.
    - Không in khối copy dạng tab nữa (dán tay hay lỗi format). Chỉ in khi người dùng yêu cầu ("cho tôi khối copy"): một khối code, phân cách bằng tab thật, cột `TASK | PROJECT | HOURS`, không tiêu đề.
@@ -141,13 +141,13 @@ Tổng: <tổng>h / <working_hours>h · Số dòng: <n> / <số dòng task của
    c. **Chuẩn hoá giá trị** cho khớp data validation của sheet (đây là nguyên nhân dán tay hay bị lỗi format):
       - PROJECT: đọc danh sách hợp lệ ở `sheet_project_list_range`. Dòng Backlog: dùng `project_map[projectKey]` nếu có; không có thì so khớp `project.name` rồi `projectKey` với danh sách (không phân biệt hoa thường, bỏ khoảng trắng/gạch). Dòng họp/gợi ý: `project` trong config phải có trong danh sách. Không khớp → hỏi bằng `AskUserQuestion` (tối đa 4 tên gần nhất + ô Other), lưu kết quả vào `project_map` trong file cá nhân.
       - HOURS: số (number), không phải chuỗi; làm tròn tới bội số 0.25 gần nhất và cảnh báo nếu có làm tròn.
-      - TASK: chuỗi, giữ nguyên văn như bảng xem trước.
+      - TASK: chuỗi, đúng như bảng xem trước (đã rút gọn tiêu đề song ngữ).
 
    d. **Kiểm tra trước khi ghi.** Đọc giá trị hiện tại của 3 cột ở các dòng task.
       - Số dòng cần ghi > số dòng task của khối → **dừng**, không chèn thêm dòng (chèn dòng sẽ làm lệch dữ liệu của mọi người và mọi ngày). Báo số dòng còn trống và đề nghị người dùng bỏ/gộp bớt.
       - Các dòng đã có dữ liệu → in bảng "Hiện có trên sheet" và hỏi bằng `AskUserQuestion`: "Ghi đè toàn bộ ngày này" / "Chỉ thêm vào dòng trống" / "Huỷ".
         - Ghi đè: dòng mới ghi từ dòng task đầu tiên; dòng thừa phía dưới ghi `""` cho 3 cột. Nhắc người dùng rằng `% Progress`/`NOTES` của các dòng đó giữ nguyên, cần tự xem lại.
-        - Chỉ thêm: giữ nguyên dòng cũ; bỏ các dòng mới trùng mã ticket hoặc trùng TASK với dòng cũ (liệt kê các dòng bị bỏ); ghi phần còn lại vào các dòng trống.
+        - Chỉ thêm: giữ nguyên dòng cũ; bỏ các dòng mới trùng mã ticket hoặc trùng TASK với dòng cũ (so TASK sau khi rút gọn tiêu đề song ngữ cả hai bên) (liệt kê các dòng bị bỏ); ghi phần còn lại vào các dòng trống.
       - In bảng xem trước: địa chỉ ô, giá trị cũ → giá trị mới.
 
    e. **Ghi.** Ngay trước khi ghi, đọc lại vùng đó; khác với lúc xem trước (có người vừa sửa) → dừng, in lại và hỏi lại. Ghi bằng **một** lần gọi cho cả vùng liên tục `TASK..HOURS` của các dòng task (connector: `update_values`; MCP local: `modify_sheet_values` với `value_input_option: USER_ENTERED`). Không ghi từng ô một (tránh ghi dở dang).

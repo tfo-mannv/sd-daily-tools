@@ -45,6 +45,18 @@ Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file.
 
 **Lưu:** ghi các giá trị vừa lấy vào `~/.claude/sd-daily-tools/daily-report.json` (tạo thư mục nếu chưa có; giữ nguyên các key đã có). Báo người dùng một dòng rằng đã lưu và lần sau không hỏi lại.
 
+## Rút gọn tiêu đề song ngữ
+
+Áp dụng khi `strip_japanese_title` là `true` (mặc định). Dùng chung cho `daily-report` (bước 6, cả báo cáo trong chat lẫn tin Slack) và `backlog-worklog` (TASK ghi vào sheet). Mục đích: tiêu đề ticket dạng "Tiếng Nhật / Tiếng Việt" chỉ giữ phần tiếng Việt.
+
+Với TASK dạng `<MÃ> <tiêu đề> (<trạng thái>)`, chỉ xử lý phần `<tiêu đề>`; mã ticket và `(<trạng thái>)` giữ nguyên:
+1. Tách tiêu đề theo ` / ` hoặc `／` (có hoặc không có dấu cách hai bên).
+2. Với mỗi đoạn, bỏ các nhãn `【...】` ở đầu rồi xét phần còn lại: có ký tự Hiragana, Katakana hoặc Hán tự (CJK) → **đoạn tiếng Nhật**; còn lại → **đoạn không phải tiếng Nhật**.
+3. Chỉ rút gọn khi có **ít nhất một** đoạn tiếng Nhật **và ít nhất một** đoạn không phải tiếng Nhật: giữ các đoạn không phải tiếng Nhật (nối lại bằng ` / ` nếu nhiều hơn một), bỏ các đoạn tiếng Nhật. Nếu đoạn giữ lại không có nhãn `【...】` ở đầu mà đoạn bị bỏ có, thì đặt nhãn đó lên đầu đoạn giữ lại.
+4. Trường hợp khác (chỉ có tiếng Nhật, chỉ có tiếng Việt/Anh, không có dấu `/`) → giữ nguyên tiêu đề.
+
+Ví dụ: `RIZACARE-7796 【Hinocho LINE】旧サーバー構成の調査（PROD） / 【Hinocho LINE】Khảo sát cấu hình server cũ (PROD) (Closed)` → `RIZACARE-7796 【Hinocho LINE】Khảo sát cấu hình server cũ (PROD) (Closed)`.
+
 ## Các bước
 
 1. **Ngày cần báo cáo.** Đọc `$ARGUMENTS` (`YYYY-MM-DD` hoặc `DD/MM`, năm hiện tại). Trống → hôm nay. `YYYYMM` = tháng của ngày đó.
@@ -66,7 +78,7 @@ Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file.
 5. **Kiểm tra.** Tổng HOURS của các dòng task so với giá trị `WORKING HOURS`. Lệch → ghi cảnh báo phía trên kết quả (vẫn tạo kết quả).
 
 6. **Dựng các mục.**
-   - **1. Công việc hôm nay**: các dòng task trừ những dòng bị loại (`exclude_rules`: PROJECT nằm trong `projects`, hoặc TASK chứa bất kỳ chuỗi nào trong `task_contains`). Giữ thứ tự trong sheet và giữ nguyên văn TASK, chỉ in đậm trạng thái trong ngoặc ở cuối, ví dụ `(Closed)` → `(*Closed*)`.
+   - **1. Công việc hôm nay**: các dòng task trừ những dòng bị loại (`exclude_rules`: PROJECT nằm trong `projects`, hoặc TASK chứa bất kỳ chuỗi nào trong `task_contains`). Giữ thứ tự trong sheet và giữ nguyên văn TASK (trừ việc rút gọn tiêu đề song ngữ ở mục "Rút gọn tiêu đề song ngữ"), chỉ in đậm trạng thái trong ngoặc ở cuối, ví dụ `(Closed)` → `(*Closed*)`.
    - **2. Công việc ngày tiếp theo**: khối cột của ngày làm việc (thứ 2–6) kế tiếp trong cùng tab (logic như bước 3), cùng các dòng, cùng quy tắc loại. Trống hoặc đã qua cuối tháng → chuyển tiếp các task ở mục 1 có trạng thái không thuộc `done_statuses`, chỉ ghi mã ticket (phần trước dấu `【` đầu tiên hoặc trước tiêu đề cách bởi dấu cách). Báo người dùng rằng mục 2 là chuyển tiếp và có thể cần bổ sung.
    - **3. Vấn đề gặp phải**: các ô NOTES không trống của các dòng hôm nay, mỗi ô một gạch đầu dòng. Không có → `N/A`.
    - `ticket_url_template`: lấy từ config của skill này; null → lấy `ticket_url_template` trong config của `backlog-worklog` (`../backlog-worklog/config.default.json` gộp với `~/.claude/sd-daily-tools/backlog-worklog.json`). Có template (ví dụ `https://x.backlog.com/view/{key}`) → bọc mỗi mã ticket thành `<url|key>`. Vẫn null → để mã ticket dạng text thường.

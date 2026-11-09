@@ -22,5 +22,6 @@
     "100%"
   ],
   "ticket_url_template": null,
-  "slack_dm": true
+  "slack_dm": true,
+  "strip_japanese_title": true
 }
