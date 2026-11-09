@@ -6,7 +6,7 @@ argument-hint: "[ngày: YYYY-MM-DD | DD/MM] (mặc định: hôm nay)"
 
 # backlog-worklog
 
-"Làm task trong ngày" = người dùng đã thay đổi **Actual Hours** của issue đó trong ngày. Ngoài ra không tính gì khác (comment, đổi trạng thái, đổi người phụ trách mà không đổi giờ đều bỏ qua). Chỉ **đọc** Backlog. Chỉ **ghi vào sheet** ở bước 9, sau khi người dùng xác nhận; ngoài ra người dùng có thể tự copy khối kết quả.
+"Làm task trong ngày" = người dùng đã thay đổi **Actual Hours** của issue đó trong ngày. Ngoài ra không tính gì khác (comment, đổi trạng thái, đổi người phụ trách mà không đổi giờ đều bỏ qua). Chỉ **đọc** Backlog. Chỉ **ghi vào sheet** ở bước 9, sau khi người dùng xác nhận. Trước khi ghi luôn hiện bảng xem trước đầu việc trong ngày (bước 8) để người dùng quyết định.
 
 Người dùng có thể không rành kỹ thuật. Luôn trả lời bằng tiếng Việt.
 
@@ -104,17 +104,31 @@ Tổng cả ngày: <Backlog + họp + gợi ý>h / <working_hours>h
 
    - Ghi rõ dưới bảng: phần "Gợi ý" chỉ là đề xuất, người dùng tự kiểm tra lại trước khi nhập sheet. Ngày nghỉ lễ / nghỉ phép / họp bị huỷ thì skill không biết.
 
-8. **Khối để copy.** Sau các bảng, một khối code duy nhất, phân cách bằng tab, không có tiêu đề, khớp với các cột sheet `TASK | PROJECT | HOURS` để dán một lần điền được 3 ô liền nhau mỗi dòng. Thứ tự dòng: họp cố định → issue Backlog (theo thứ tự bảng) → gợi ý bù giờ:
+8. **Xem trước đầu việc trong ngày.** Sau các bảng ở bước 7/7b, in **một** bảng gộp đúng các dòng sẽ ghi vào sheet, theo thứ tự ghi: họp cố định → issue Backlog (theo thứ tự bảng) → gợi ý bù giờ. Đây là thứ người dùng xem để quyết định, nên phải trùng với dữ liệu sẽ ghi ở bước 9.
 
 ```
-PROJ-101 【PROJ-100】...<tiêu đề> (DevelopDeployed)	PROJ	1
+### Đầu việc ngày <DD/MM> (<thứ>) — xem trước trước khi ghi sheet
+| # | TASK | PROJECT | HOURS | Nguồn |
+|---|------|---------|-------|-------|
+| 1 | 【MTG Daily】Project | Project | 0.5 | Họp |
+| 2 | PROJ-101 【PROJ-100】...<tiêu đề> (DevelopDeployed) | Project | 1 | Backlog |
+| 3 | Support team | Others | 2 | Gợi ý |
+
+Tổng: <tổng>h / <working_hours>h · Số dòng: <n> / <số dòng task của sheet, nếu đã biết>
 ```
 
-   - Dòng Backlog: TASK = `<MÃ> <tiêu đề> (<trạng thái>)`, giữ nguyên văn tiêu đề. PROJECT = `projectKey`. HOURS = số giờ log trong ngày.
-   - Dòng họp / gợi ý: TASK = `task`, PROJECT = `project`, HOURS = số giờ đã tính, đúng như config.
-   - Ngay dưới khối code, nói rõ những dòng nào là gợi ý để người dùng xoá nếu không đúng.
+   - Dòng Backlog: TASK = `<MÃ> <tiêu đề> (<trạng thái>)`, giữ nguyên văn tiêu đề. Dòng họp / gợi ý: TASK = `task` trong config.
+   - PROJECT / HOURS: nếu đã có config sheet (mục Config của `daily-report`) và công cụ Google, chuẩn hoá ngay theo bước 9c (chỉ **đọc** sheet: danh sách project, số dòng task) để bảng xem trước là giá trị cuối cùng. Project chưa khớp danh sách → hiện `⚠ <giá trị gốc>`, sẽ hỏi ở bước 9. Chưa có config/công cụ Google → hiện `projectKey` / `project` gốc và ghi chú "PROJECT sẽ được chuẩn hoá khi ghi".
+   - Số dòng vượt số dòng task của sheet → cảnh báo ngay dưới bảng.
+   - Không in khối copy dạng tab nữa (dán tay hay lỗi format). Chỉ in khi người dùng yêu cầu ("cho tôi khối copy"): một khối code, phân cách bằng tab thật, cột `TASK | PROJECT | HOURS`, không tiêu đề.
+   - Không có dòng nào (không Backlog, không họp, không gợi ý) → báo "Không có đầu việc nào cho ngày <ngày>" và dừng, không hỏi ghi sheet.
 
-9. **Ghi vào sheet (khi người dùng đồng ý).** Sau khi in kết quả, hỏi bằng `AskUserQuestion`: "Ghi các dòng này vào sheet ngày <ngày>?" với lựa chọn "Ghi vào sheet" / "Chưa, tôi muốn sửa" / "Không ghi". Người dùng cũng có thể tự yêu cầu (ví dụ "ok push lên sheet", "bỏ dòng gợi ý rồi ghi"). Nếu họ muốn sửa (bỏ dòng, đổi giờ, đổi project) → sửa danh sách, in lại khối kết quả, hỏi lại. **Không bao giờ ghi khi chưa có xác nhận.**
+9. **Ghi vào sheet (khi người dùng đồng ý).** Ngay sau bảng xem trước, hỏi bằng `AskUserQuestion`. Hộp thoại có thể che phần chat phía trên, nên câu hỏi phải tự đủ ý: "Ghi <n> dòng (tổng <tổng>h) vào sheet ngày <DD/MM>?". Lựa chọn:
+   - "Ghi vào sheet": trường `preview` chứa lại bảng xem trước dạng chữ đơn giản (`#  TASK | PROJECT | HOURS | Nguồn`, cắt TASK dài quá 50 ký tự bằng `…`) để xem lại ngay trong hộp thoại.
+   - "Chưa, tôi muốn sửa": người dùng nói thay đổi (bỏ dòng, đổi giờ, đổi project, thêm việc) → sửa danh sách, **in lại bảng xem trước** và hỏi lại. Lặp đến khi người dùng chọn ghi hoặc không ghi.
+   - "Không ghi": dừng ở đây; người dùng vẫn có thể nói "ok push lên sheet" sau đó trong cùng phiên để ghi đúng danh sách đang xem.
+
+   **Không bao giờ ghi khi chưa có xác nhận** cho đúng danh sách đang hiển thị gần nhất.
 
    a. **Config sheet.** Đọc config `daily-report` như mục Config. Thiếu `sheet_name_pattern` / `member_name` (hoặc `google_email` khi chỉ có MCP local) → làm theo mục "Lần chạy đầu" trong `../daily-report/SKILL.md` để hỏi và lưu, rồi làm tiếp.
 
@@ -123,7 +137,7 @@ PROJ-101 【PROJ-100】...<tiêu đề> (DevelopDeployed)	PROJ	1
    c. **Chuẩn hoá giá trị** cho khớp data validation của sheet (đây là nguyên nhân dán tay hay bị lỗi format):
       - PROJECT: đọc danh sách hợp lệ ở `sheet_project_list_range`. Dòng Backlog: dùng `project_map[projectKey]` nếu có; không có thì so khớp `project.name` rồi `projectKey` với danh sách (không phân biệt hoa thường, bỏ khoảng trắng/gạch). Dòng họp/gợi ý: `project` trong config phải có trong danh sách. Không khớp → hỏi bằng `AskUserQuestion` (tối đa 4 tên gần nhất + ô Other), lưu kết quả vào `project_map` trong file cá nhân.
       - HOURS: số (number), không phải chuỗi; làm tròn tới bội số 0.25 gần nhất và cảnh báo nếu có làm tròn.
-      - TASK: chuỗi, giữ nguyên văn như khối kết quả.
+      - TASK: chuỗi, giữ nguyên văn như bảng xem trước.
 
    d. **Kiểm tra trước khi ghi.** Đọc giá trị hiện tại của 3 cột ở các dòng task.
       - Số dòng cần ghi > số dòng task của khối → **dừng**, không chèn thêm dòng (chèn dòng sẽ làm lệch dữ liệu của mọi người và mọi ngày). Báo số dòng còn trống và đề nghị người dùng bỏ/gộp bớt.
@@ -135,7 +149,6 @@ PROJ-101 【PROJ-100】...<tiêu đề> (DevelopDeployed)	PROJ	1
    e. **Ghi.** Ngay trước khi ghi, đọc lại vùng đó; khác với lúc xem trước (có người vừa sửa) → dừng, in lại và hỏi lại. Ghi bằng **một** lần gọi cho cả vùng liên tục `TASK..HOURS` của các dòng task (connector: `update_values`; MCP local: `modify_sheet_values` với `value_input_option: USER_ENTERED`). Không ghi từng ô một (tránh ghi dở dang).
 
    f. **Xác nhận.** Đọc lại vùng vừa ghi và ô `WORKING HOURS`; so với giá trị dự kiến. Khớp → báo "Đã ghi N dòng vào sheet, WORKING HOURS = Xh" kèm link sheet. Không khớp hoặc lỗi API → báo nguyên văn lỗi, nói rõ đã ghi được gì, không tự thử lại quá 1 lần.
-   - Dùng ký tự tab thật, không dùng dấu cách.
 
 ## Giới hạn đã biết (chỉ nêu khi liên quan)
 
