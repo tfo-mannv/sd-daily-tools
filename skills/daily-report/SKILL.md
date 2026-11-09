@@ -108,7 +108,25 @@ Chỉ hiển thị khối code và các ghi chú ngắn; người dùng copy dá
    - `message` = cùng nội dung với khối code ở bước 7 (đã qua bước tự kiểm tra header), nhưng **không bọc trong khối code**, để Slack hiển thị định dạng. Tool nhận Markdown chuẩn, không nhận Slack mrkdwn, nên đổi trước khi gửi:
      - In đậm `*Closed*` → `**Closed**`.
      - Link `<url|PROJ-101>` → `[PROJ-101](url)`.
-     - Giữ nguyên mọi ký tự khác: header (mention `@...` để dạng chữ, không đổi thành `<@USERID>` để không ai bị ping), `•`, tiêu đề task, xuống dòng. Dòng mục `1. Công việc hôm nay` có thể bị Slack hiểu là danh sách đánh số; nếu số mục hiển thị sai thì thoát thành `1\. Công việc hôm nay`.
+     - Bố cục: Slack tự chuyển Markdown thành danh sách, nên **không** dùng nguyên văn các dòng `1. ...` và `• ...` (sẽ bị lệch: mục `2.`, `3.` bị thụt vào trong danh sách của mục trước, `•` thành bullet lồng). Dựng lại như sau:
+       - Dòng mục: thoát dấu chấm sau số → `1\. Công việc hôm nay`, `2\. Công việc ngày tiếp theo`, `3\. Vấn đề gặp phải`.
+       - Dòng task: đổi `• <task>` → `- <task>` (danh sách Markdown chuẩn, cố ý để Slack hiện bullet).
+       - Trước dòng mục `2\.` và `3\.` có **một dòng trống** (kết thúc danh sách của mục trước; thiếu dòng trống thì dòng mục bị gộp vào bullet cuối).
+       - Header giữ nguyên từng dòng, mention `@...` để dạng chữ (không đổi thành `<@USERID>` để không ai bị ping). Tiêu đề task giữ nguyên.
+
+     Ví dụ `message`:
+     ```
+     @Lead cc: @Sub
+     Anh báo cáo công việc
+     1\. Công việc hôm nay
+     - [PROJ-101](url) 【Tag】Tiêu đề (**Closed**)
+
+     2\. Công việc ngày tiếp theo
+     - N/A
+
+     3\. Vấn đề gặp phải
+     - N/A
+     ```
    - Trên 5000 ký tự → tách thành nhiều tin theo ranh giới mục (1/2/3), gửi theo thứ tự.
    - Gửi thành công → báo một dòng kèm link tin nhắn. Vẫn in khối code trong chat như bước 7.
    - Chưa kết nối Slack → không dừng; in kết quả như bước 7 và nhắc một dòng: gõ `/mcp`, chọn `claude.ai Slack`, đăng nhập. Muốn tắt gửi thì nói "tắt gửi Slack" → lưu `slack_dm: false` vào file cá nhân.
