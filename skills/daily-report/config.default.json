@@ -21,5 +21,6 @@
     "Resolved",
     "100%"
   ],
-  "ticket_url_template": null
+  "ticket_url_template": null,
+  "slack_dm": true
 }

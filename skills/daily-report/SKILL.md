@@ -7,7 +7,7 @@ argument-hint: "[ngày: YYYY-MM-DD | DD/MM] (mặc định: hôm nay)"
 
 # /daily-report
 
-Sheet là nguồn dữ liệu duy nhất; skill này chỉ **đọc**, không bao giờ ghi vào sheet. Kết quả là đoạn text người dùng copy dán vào Slack.
+Sheet là nguồn dữ liệu duy nhất; skill này chỉ **đọc**, không bao giờ ghi vào sheet. Kết quả là đoạn text người dùng copy dán vào Slack; khi `slack_dm` bật thì gửi thêm vào tin nhắn Slack cá nhân (DM cho chính mình), giữ in đậm và link ticket, để người dùng xem lại rồi chuyển tiếp.
 
 Người dùng có thể không rành kỹ thuật: không bao giờ bắt họ sửa file hay chạy lệnh. Luôn trả lời bằng tiếng Việt.
 
@@ -69,7 +69,7 @@ Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file.
    - **1. Công việc hôm nay**: các dòng task trừ những dòng bị loại (`exclude_rules`: PROJECT nằm trong `projects`, hoặc TASK chứa bất kỳ chuỗi nào trong `task_contains`). Giữ thứ tự trong sheet và giữ nguyên văn TASK, chỉ in đậm trạng thái trong ngoặc ở cuối, ví dụ `(Closed)` → `(*Closed*)`.
    - **2. Công việc ngày tiếp theo**: khối cột của ngày làm việc (thứ 2–6) kế tiếp trong cùng tab (logic như bước 3), cùng các dòng, cùng quy tắc loại. Trống hoặc đã qua cuối tháng → chuyển tiếp các task ở mục 1 có trạng thái không thuộc `done_statuses`, chỉ ghi mã ticket (phần trước dấu `【` đầu tiên hoặc trước tiêu đề cách bởi dấu cách). Báo người dùng rằng mục 2 là chuyển tiếp và có thể cần bổ sung.
    - **3. Vấn đề gặp phải**: các ô NOTES không trống của các dòng hôm nay, mỗi ô một gạch đầu dòng. Không có → `N/A`.
-   - Có `ticket_url_template` (ví dụ `https://x.backlog.com/view/{key}`) → bọc mỗi mã ticket thành `<url|key>`. Null → để mã ticket dạng text thường.
+   - `ticket_url_template`: lấy từ config của skill này; null → lấy `ticket_url_template` trong config của `backlog-worklog` (`../backlog-worklog/config.default.json` gộp với `~/.claude/sd-daily-tools/backlog-worklog.json`). Có template (ví dụ `https://x.backlog.com/view/{key}`) → bọc mỗi mã ticket thành `<url|key>`. Vẫn null → để mã ticket dạng text thường.
 
 7. **Kết quả.** Một khối code duy nhất, đúng định dạng dưới đây, sau đó là các cảnh báo/ghi chú dạng gạch đầu dòng:
 
@@ -90,3 +90,14 @@ Tự lấy giá trị rồi lưu lại, không bắt người dùng sửa file.
 - `slack_header` là chuỗi rỗng (người dùng chọn "Không dùng header") → bỏ header, khối code bắt đầu từ `1. Công việc hôm nay`.
 
 Chỉ hiển thị khối code và các ghi chú ngắn; người dùng copy dán trực tiếp.
+
+8. **Gửi vào Slack cá nhân.** Chỉ khi `slack_dm` là `true` (mặc định) và có connector `claude.ai Slack` (`slack_send_message`). Chỉ gửi vào **DM của chính người dùng**; không bao giờ gửi vào channel hay cho người khác, kể cả khi header có mention.
+   - `channel_id` = Slack user ID của người dùng hiện tại: lấy từ mô tả tool Slack ("current logged in user's user_id is ...") hoặc gọi `slack_read_user_profile` không truyền `user_id`. Không hard-code, không lưu vào config.
+   - `message` = cùng nội dung với khối code ở bước 7 (đã qua bước tự kiểm tra header), nhưng **không bọc trong khối code**, để Slack hiển thị định dạng. Tool nhận Markdown chuẩn, không nhận Slack mrkdwn, nên đổi trước khi gửi:
+     - In đậm `*Closed*` → `**Closed**`.
+     - Link `<url|PROJ-101>` → `[PROJ-101](url)`.
+     - Giữ nguyên mọi ký tự khác: header (mention `@...` để dạng chữ, không đổi thành `<@USERID>` để không ai bị ping), `•`, tiêu đề task, xuống dòng. Dòng mục `1. Công việc hôm nay` có thể bị Slack hiểu là danh sách đánh số; nếu số mục hiển thị sai thì thoát thành `1\. Công việc hôm nay`.
+   - Trên 5000 ký tự → tách thành nhiều tin theo ranh giới mục (1/2/3), gửi theo thứ tự.
+   - Gửi thành công → báo một dòng kèm link tin nhắn. Vẫn in khối code trong chat như bước 7.
+   - Chưa kết nối Slack → không dừng; in kết quả như bước 7 và nhắc một dòng: gõ `/mcp`, chọn `claude.ai Slack`, đăng nhập. Muốn tắt gửi thì nói "tắt gửi Slack" → lưu `slack_dm: false` vào file cá nhân.
+   - Lỗi API → báo nguyên văn lỗi, không thử lại quá 1 lần. Chạy lại skill sẽ gửi thêm một tin mới (không sửa tin cũ); vì là DM cho chính mình nên chấp nhận được.
