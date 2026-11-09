@@ -123,10 +123,14 @@ Tổng: <tổng>h / <working_hours>h · Số dòng: <n> / <số dòng task của
    - Không in khối copy dạng tab nữa (dán tay hay lỗi format). Chỉ in khi người dùng yêu cầu ("cho tôi khối copy"): một khối code, phân cách bằng tab thật, cột `TASK | PROJECT | HOURS`, không tiêu đề.
    - Không có dòng nào (không Backlog, không họp, không gợi ý) → báo "Không có đầu việc nào cho ngày <ngày>" và dừng, không hỏi ghi sheet.
 
-9. **Ghi vào sheet (khi người dùng đồng ý).** Ngay sau bảng xem trước, hỏi bằng `AskUserQuestion`. Hộp thoại có thể che phần chat phía trên, nên câu hỏi phải tự đủ ý: "Ghi <n> dòng (tổng <tổng>h) vào sheet ngày <DD/MM>?". Lựa chọn:
-   - "Ghi vào sheet": trường `preview` chứa lại bảng xem trước dạng chữ đơn giản (`#  TASK | PROJECT | HOURS | Nguồn`, cắt TASK dài quá 50 ký tự bằng `…`) để xem lại ngay trong hộp thoại.
-   - "Chưa, tôi muốn sửa": người dùng nói thay đổi (bỏ dòng, đổi giờ, đổi project, thêm việc) → sửa danh sách, **in lại bảng xem trước** và hỏi lại. Lặp đến khi người dùng chọn ghi hoặc không ghi.
-   - "Không ghi": dừng ở đây; người dùng vẫn có thể nói "ok push lên sheet" sau đó trong cùng phiên để ghi đúng danh sách đang xem.
+9. **Ghi vào sheet (khi người dùng đồng ý).** Thứ tự bắt buộc: in xong toàn bộ bảng (bước 7, 7b, 8) dưới dạng bảng Markdown bình thường trong tin nhắn, **rồi mới hỏi**. Không hỏi bằng `AskUserQuestion` ở bước này: hộp thoại che mất bảng vừa in, người dùng không xem được danh sách trước khi quyết định. Thay vào đó, kết thúc tin nhắn bằng đúng một dòng hỏi và **dừng lượt**, chờ người dùng trả lời:
+
+   > **Ghi <n> dòng (tổng <tổng>h) vào sheet ngày <DD/MM>?** Trả lời `ghi` để đẩy lên sheet, `không` để bỏ qua, hoặc nói cần sửa gì (ví dụ "bỏ dòng 3", "dòng 2 đổi thành 1.5h").
+
+   - Người dùng trả lời đồng ý (`ghi`, `ok`, `push`, `ok push lên sheet`...) → làm tiếp từ 9a với đúng danh sách đang hiển thị.
+   - Người dùng yêu cầu sửa → sửa danh sách, **in lại bảng xem trước** (bước 8) rồi hỏi lại bằng dòng trên. Lặp đến khi đồng ý hoặc từ chối.
+   - Người dùng từ chối → dừng; trong cùng phiên họ vẫn có thể nói "ok push lên sheet" sau đó.
+   - Các câu hỏi phát sinh **trong lúc ghi** (project chưa khớp ở 9c, ghi đè / chỉ thêm ở 9d) vẫn dùng `AskUserQuestion`, vì lúc đó người dùng đã xem bảng rồi.
 
    **Không bao giờ ghi khi chưa có xác nhận** cho đúng danh sách đang hiển thị gần nhất.
 
